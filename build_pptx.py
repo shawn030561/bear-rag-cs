@@ -236,7 +236,7 @@ def f_node(x, y, w, h, big, sub, color, hl=False):
         line=(color if hl else LINE), line_w=Pt(1.5), shape=MSO_SHAPE.ROUNDED_RECTANGLE)
     box(s, Inches(x), Inches(y), Inches(0.09), Inches(h), fill=color)
     shape_text(box(s, Inches(x), Inches(y), Inches(w), Inches(h), fill=None),
-               [[(big, 14, (color if hl else TEXT), True)], [(sub, 10, MUTED, False)]])
+               [[(big, 14, (color if hl else TEXT), True)], [(sub, 10.5, MUTED, False)]])
 
 
 def f_arrow(x, y):
@@ -317,11 +317,11 @@ def pipe_box(x, y, w, h, title, sub, layer, lc, fill=CARD):
     box(s, Inches(x), Inches(y), Inches(0.09), Inches(h), fill=lc)   # 左侧色条
     runs = [[(title, 16, TEXT, True)]]
     if sub:
-        runs.append([(sub, 10.5, MUTED, False)])
+        runs.append([(sub, 11, MUTED, False)])
     shape_text(box(s, Inches(x + 0.2), Inches(y), Inches(w - 0.2), Inches(h), fill=None), runs)
     tag = box(s, Inches(x + w - 0.82), Inches(y + 0.08), Inches(0.72), Inches(0.28),
               fill=lc, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-    shape_text(tag, [[(layer, 9.5, BG, True)]])
+    shape_text(tag, [[(layer, 10, BG, True)]])
 
 
 # 主流程竖排（居中）
@@ -358,11 +358,11 @@ txt(s, Inches(rx + 0.2), Inches(ry + 0.08), Inches(rw - 0.4), Inches(0.32),
 box(s, Inches(rx + 0.16), Inches(ry + 0.42), Inches(rw - 0.32), Inches(0.62),
     fill=CARD2, line=LINE, line_w=Pt(1), shape=MSO_SHAPE.ROUNDED_RECTANGLE)
 shape_text(box(s, Inches(rx + 0.16), Inches(ry + 0.42), Inches(rw - 0.32), Inches(0.62), fill=None),
-    [[("产品知识库", 12, TEXT, True)], [("卖点 / 参数 / FAQ", 9.5, MUTED, False)]])
+    [[("产品知识库", 12, TEXT, True)], [("卖点 / 参数 / FAQ", 10.5, MUTED, False)]])
 box(s, Inches(rx + 0.16), Inches(ry + 1.1), Inches(rw - 0.32), Inches(0.62),
     fill=CARD2, line=LINE, line_w=Pt(1), shape=MSO_SHAPE.ROUNDED_RECTANGLE)
 shape_text(box(s, Inches(rx + 0.16), Inches(ry + 1.1), Inches(rw - 0.32), Inches(0.62), fill=None),
-    [[("平台规则库", 12, TEXT, True)], [("优惠 / 售后 / 风格", 9.5, MUTED, False)]])
+    [[("平台规则库", 12, TEXT, True)], [("优惠 / 售后 / 风格", 10.5, MUTED, False)]])
 box(s, Inches(rx - 0.38), Inches(ry + 0.72 - 0.13), Inches(0.38), Inches(0.26),
     fill=SOFT, shape=MSO_SHAPE.LEFT_ARROW)
 
@@ -466,7 +466,7 @@ for i, (name, style, desc, c) in enumerate(plats):
     box(s, l, t, Inches(2.9), Inches(0.55), fill=c, shape=MSO_SHAPE.ROUNDED_RECTANGLE)
     txt(s, l + Inches(0.2), t + Inches(0.07), Inches(2.5), Inches(0.4), [(name, 18, TEXT, True)])
     txt(s, l + Inches(0.2), t + Inches(0.66), Inches(2.5), Inches(0.35), [(style, 14, SOFT, True)])
-    txt(s, l + Inches(0.2), t + Inches(1.05), Inches(2.5), Inches(0.42), [(desc, 11.5, MUTED, False)])
+    txt(s, l + Inches(0.2), t + Inches(1.05), Inches(2.5), Inches(0.42), [(desc, 12, MUTED, False)])
 
 
 def g_node(x, y, w, h, big, sub, hl=False):
@@ -474,7 +474,7 @@ def g_node(x, y, w, h, big, sub, hl=False):
     box(s, Inches(x), Inches(y), Inches(w), Inches(h), fill=CARD,
         line=(ACCENT if hl else LINE), line_w=Pt(1.25), shape=MSO_SHAPE.ROUNDED_RECTANGLE)
     shape_text(box(s, Inches(x), Inches(y), Inches(w), Inches(h), fill=None),
-               [[(big, 13, (SOFT if hl else TEXT), True)], [(sub, 10.5, MUTED, False)]])
+               [[(big, 13, (SOFT if hl else TEXT), True)], [(sub, 11, MUTED, False)]])
 
 
 nodes = [
