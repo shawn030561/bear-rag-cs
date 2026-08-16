@@ -1,16 +1,16 @@
 Demo / 成品 / 演示视频 —— 有效访问方式说明
 
-本项目为本地演示项目，未部署公网服务器链接。以下为可直接访问/运行的有效方式：
+【公网链接（GitHub Pages 已部署，可直接打开）】
 
-1. 零安装成品（交互 Demo）
-   双击打开「04_交互Demo.html」，浏览器即用（file:// 路径即有效链接）。
-   也可将这一个 HTML 文件上传到任意静态服务器 / 对象存储，即获得公网有效链接。
+  交互 Demo（在线可玩）： https://shawn030561.github.io/bear-rag-cs/
+  演示视频：              https://shawn030561.github.io/bear-rag-cs/docs/演示视频.mp4
+  方案 PPT：              https://shawn030561.github.io/bear-rag-cs/docs/方案PPT.pptx
+  交互 Demo 源文件：      https://shawn030561.github.io/bear-rag-cs/docs/交互Demo.html
+  代码仓库：              https://github.com/shawn030561/bear-rag-cs
 
-2. 演示视频
-   直接播放「04_演示视频.mp4」（101 秒，1080p）。
+【本地运行方式】
 
-3. 真实大模型 Demo（需密钥）
-   本地运行：pip install -r requirements.txt → 配置 .env → streamlit run src/app.py
-   浏览器访问 http://localhost:8501
-
-如需公网链接，可将「交互Demo.html」部署到任意静态托管（GitHub Pages / 对象存储 / Nginx 等）。
+  1. 零安装成品（交互 Demo）：双击打开「04_交互Demo.html」，浏览器即用（file:// 路径即有效链接）。
+  2. 演示视频：直接播放「04_演示视频.mp4」（101 秒，1080p）。
+  3. 真实大模型 Demo（需密钥）：
+     pip install -r requirements.txt → 配置 .env → streamlit run src/app.py → http://localhost:8501
