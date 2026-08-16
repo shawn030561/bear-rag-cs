@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小熊电器 AI 智能客服 · 方案演示</title>
+<style>
+/* ===========================================
+   视口适配：强制性基础样式 (VIEWPORT FITTING: MANDATORY BASE)
+   =========================================== */
+html, body { height: 100%; overflow-x: hidden; }
+html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+.slide {
+    width: 100vw; height: 100vh; height: 100dvh;
+    overflow: hidden; scroll-snap-align: start;
+    display: flex; flex-direction: column; position: relative;
+}
+.slide-content {
+    flex: 1; display: flex; flex-direction: column; justify-content: center;
+    max-height: 100%; overflow: hidden; padding: var(--slide-padding);
+}
+
+/* ===========================================
+   主题变量 (THEME) —— 炭黑底 + 小熊橙
+   =========================================== */
+:root {
+    --bg: #17110C;
+    --bg-card: #221A13;
+    --bg-card2: #2A2017;
+    --accent: #F4571E;
+    --accent-soft: #FF8A4C;
+    --text: #F6F0E6;
+    --muted: #A99C8B;
+    --line: rgba(246,240,230,0.12);
+
+    --font-sans: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", "Noto Sans SC", "Segoe UI", system-ui, sans-serif;
+
+    --title-size: clamp(1.6rem, 5.2vw, 4.2rem);
+    --h2-size: clamp(1.3rem, 3.4vw, 2.4rem);
+    --h3-size: clamp(1.05rem, 2.4vw, 1.6rem);
+    --body-size: clamp(0.85rem, 1.5vw, 1.15rem);
+    --small-size: clamp(0.7rem, 1vw, 0.9rem);
+
+    --slide-padding: clamp(1.2rem, 4.5vw, 4.5rem);
+    --content-gap: clamp(0.6rem, 2vw, 1.8rem);
+    --element-gap: clamp(0.35rem, 1vw, 1rem);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* 背景装饰：低透明度光晕 + 细网格（抽象形状，非插图） */
+body::before {
+    content: ""; position: fixed; inset: 0; z-index: -2;
+    background:
+        radial-gradient(60vw 60vw at 85% -10%, rgba(244,87,30,0.16), transparent 60%),
+        radial-gradient(50vw 50vw at -10% 110%, rgba(244,87,30,0.10), transparent 60%),
+        var(--bg);
+}
+body::after {
+    content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background-image:
+        linear-gradient(rgba(246,240,230,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(246,240,230,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+}
+
+/* 章节编号（右上角大字，低透明橙） */
+.slide-num {
+    position: absolute; top: clamp(0.5rem, 2vh, 1.5rem);
+    right: clamp(1rem, 3vw, 2.5rem);
+    font-size: clamp(3rem, 10vw, 8rem); font-weight: 800;
+    color: var(--accent); opacity: 0.16; line-height: 1;
+    user-select: none; letter-spacing: -0.04em;
+}
+
+.kicker {
+    color: var(--accent); font-weight: 700;
+    font-size: var(--small-size); letter-spacing: 0.16em;
+    text-transform: uppercase; margin-bottom: var(--element-gap);
+}
+h1 { font-size: var(--title-size); line-height: 1.12; font-weight: 800; letter-spacing: -0.01em; }
+h2 { font-size: var(--h2-size); line-height: 1.2; font-weight: 700; }
+h3 { font-size: var(--h3-size); font-weight: 700; }
+p, li { font-size: var(--body-size); line-height: 1.55; color: var(--text); }
+.lead { color: var(--muted); }
+.accent { color: var(--accent-soft); }
+
+/* 卡片 */
+.card {
+    background: var(--bg-card); border: 1px solid var(--line);
+    border-radius: clamp(10px, 1.4vw, 18px);
+    padding: clamp(1rem, 2vw, 1.8rem);
+}
+.card h3 { margin-bottom: 0.4rem; }
+.card p, .card li { font-size: var(--body-size); }
+
+/* 网格 */
+.grid { display: grid; gap: var(--content-gap); }
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+.grid-5 { grid-template-columns: repeat(5, 1fr); }
+@media (max-width: 720px) { .grid-2, .grid-3, .grid-4, .grid-5 { grid-template-columns: 1fr 1fr; } }
+
+/* 列表 */
+.bullet-list { list-style: none; display: flex; flex-direction: column; gap: clamp(0.5rem, 1.2vh, 1rem); }
+.bullet-list li {
+    display: flex; gap: 0.7rem; align-items: flex-start;
+}
+.bullet-list li::before {
+    content: ""; flex: 0 0 auto; width: 0.5em; height: 0.5em;
+    margin-top: 0.45em; border-radius: 50%; background: var(--accent);
+}
+.bullet-list strong { color: var(--accent-soft); }
+
+/* 大金句 / 引用 */
+.statement {
+    font-size: clamp(1.3rem, 3.4vw, 2.8rem); font-weight: 800; line-height: 1.3;
+    letter-spacing: -0.01em;
+}
+.statement .hl { color: var(--accent-soft); }
+
+/* 演示对话气泡 */
+.demo-bubble {
+    background: var(--bg-card2); border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px; padding: clamp(0.8rem, 1.5vw, 1.2rem);
+    font-size: var(--body-size); line-height: 1.6;
+}
+.tag {
+    display: inline-block; font-size: var(--small-size); font-weight: 700;
+    color: var(--accent-soft); border: 1px solid rgba(255,138,76,0.4);
+    border-radius: 999px; padding: 0.15em 0.7em; margin-right: 0.4em;
+}
+.tag.inline { margin: 0 0.2em; }
+
+/* 架构图 */
+.arch { display: flex; flex-direction: column; gap: clamp(0.3rem, 0.8vh, 0.7rem); max-width: 760px; width: 100%; margin: 0 auto; }
+.arch .layer {
+    display: flex; align-items: center; gap: 1rem;
+    background: var(--bg-card); border: 1px solid var(--line);
+    border-radius: 12px; padding: clamp(0.6rem, 1.4vh, 1rem) clamp(0.9rem, 2vw, 1.4rem);
+}
+.arch .layer .lbl { font-weight: 700; color: var(--accent-soft); white-space: nowrap; font-size: var(--body-size); }
+.arch .layer .desc { color: var(--muted); font-size: var(--small-size); }
+.arch .arrow { text-align: center; color: var(--accent); font-size: var(--h3-size); line-height: 0.6; }
+
+/* 统一接入网关（水平流程） */
+.gateway { display: flex; align-items: center; gap: clamp(0.4rem, 1.2vw, 1rem); flex-wrap: wrap; }
+.g-node {
+    background: var(--bg-card); border: 1px solid var(--line);
+    border-radius: 12px; padding: clamp(0.45rem, 1.1vh, 0.75rem) clamp(0.7rem, 1.8vw, 1.2rem);
+    text-align: center; line-height: 1.3;
+}
+.g-node b { display: block; color: var(--accent-soft); font-size: var(--body-size); font-weight: 700; }
+.g-node span { color: var(--muted); font-size: var(--small-size); }
+.g-node.hl { border-color: rgba(244,87,30,0.5); }
+.g-arrow { color: var(--accent); font-weight: 700; font-size: var(--h3-size); }
+
+/* 入场动画 */
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.55s ease, transform 0.55s ease; }
+.slide.in .reveal { opacity: 1; transform: none; }
+.slide.in .reveal:nth-child(2) { transition-delay: 0.06s; }
+.slide.in .reveal:nth-child(3) { transition-delay: 0.12s; }
+.slide.in .reveal:nth-child(4) { transition-delay: 0.18s; }
+.slide.in .reveal:nth-child(5) { transition-delay: 0.24s; }
+.slide.in .reveal:nth-child(6) { transition-delay: 0.30s; }
+
+/* 导航 UI */
+.progress-bar {
+    position: fixed; top: 0; left: 0; height: 3px; width: 0%;
+    background: var(--accent); z-index: 50;
+    transition: width 0.3s ease;
+}
+.counter {
+    position: fixed; right: clamp(0.8rem, 2vw, 1.5rem); bottom: clamp(0.8rem, 2vh, 1.5rem);
+    font-size: var(--small-size); color: var(--muted); z-index: 50;
+    font-variant-numeric: tabular-nums; letter-spacing: 0.05em;
+}
+.keyboard-hint {
+    position: fixed; left: clamp(0.8rem, 2vw, 1.5rem); bottom: clamp(0.8rem, 2vh, 1.5rem);
+    font-size: var(--small-size); color: var(--muted); z-index: 50; opacity: 0.6;
+}
+
+/* 响应式断点 */
+@media (max-height: 700px) {
+    :root {
+        --slide-padding: clamp(0.8rem, 3vw, 2rem);
+        --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+        --title-size: clamp(1.3rem, 4.5vw, 2.5rem);
+        --h2-size: clamp(1.05rem, 3vw, 1.75rem);
+    }
+}
+@media (max-height: 600px) {
+    :root { --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem); --body-size: clamp(0.72rem, 1.2vw, 0.95rem); }
+    .keyboard-hint { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+    html { scroll-behavior: auto; }
+    .reveal { opacity: 1; transform: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progress"></div>
+<div class="counter" id="counter">01 / 12</div>
+<div class="keyboard-hint">← → 或滚轮翻页</div>
+
+<main>
+
+<!-- 01 封面 -->
+<section class="slide">
+    <div class="slide-num">01</div>
+    <div class="slide-content" style="align-items:flex-start;">
+        <span class="kicker reveal">小熊电器 · 黑客松命题</span>
+        <h1 class="reveal" style="font-size:clamp(2.2rem,7vw,5.5rem);">AI 智能客服<br><span class="accent">RAG 话术生成</span></h1>
+        <p class="reveal lead" style="font-size:clamp(1rem,2.2vw,1.5rem); margin-top:var(--content-gap);">
+            让 AI 从「人工辅助」走向「全自主接待」
+        </p>
+        <p class="reveal lead" style="margin-top:var(--element-gap);">
+            基于大模型 RAG · 融合产品知识库与多平台规则
+        </p>
+        <div class="reveal" style="margin-top:var(--content-gap);">
+            <span class="tag">京东</span><span class="tag">天猫</span><span class="tag">抖音</span><span class="tag">拼多多</span>
+        </div>
+    </div>
+</section>
+
+<!-- 02 痛点 -->
+<section class="slide">
+    <div class="slide-num">02</div>
+    <div class="slide-content">
+        <span class="kicker reveal">为什么需要 AI 客服</span>
+        <h2 class="reveal" style="margin-bottom:var(--content-gap);">千牛人工分岗 · 转接流转，客服的五大痛点</h2>
+        <ul class="bullet-list reveal">
+            <li><strong>分流不精准、转接多</strong>&nbsp;—— 售前/售中人工分岗，分流不准就转接，用户被转来转去、转化流失</li>
+            <li><strong>接待受人力限制</strong>&nbsp;—— 淘系/京东/抖音多平台并线，高峰响应慢，体验分与转化率承压</li>
+            <li><strong>话术标准化难</strong>&nbsp;—— 售前/售中话术参差，新人培训 2-4 周，知识更新滞后</li>
+            <li><strong>质量靠事后记录</strong>&nbsp;—— 赤兔名品只记接待量/满意度/转化率，无法实时提升话术</li>
+            <li><strong>多平台规则适配难</strong>&nbsp;—— 京东/天猫/抖音规则各异，人工易记混出错</li>
+        </ul>
+    </div>
+</section>
+
+<!-- 03 方案 -->
+<section class="slide">
+    <div class="slide-num">03</div>
+    <div class="slide-content" style="align-items:center; text-align:center;">
+        <span class="kicker reveal">我们的方案</span>
+        <p class="statement reveal">
+            一个 AI，全岗位自主接待<br>
+            <span class="hl">替代「人工分岗 + 分流 + 转接」</span>
+        </p>
+        <p class="reveal lead" style="font-size:clamp(1rem,2vw,1.4rem); margin-top:var(--content-gap);">
+            进线即自动分流（售前 / 售中 / 售后）→ RAG 检索 + 大模型生成 → 秒级回复、无需转接
+        </p>
+    </div>
+</section>
+
+<!-- 04 对标千牛工作流 -->
+<section class="slide">
+    <div class="slide-num">04</div>
+    <div class="slide-content">
+        <span class="kicker reveal">对标千牛工作流</span>
+        <h2 class="reveal" style="margin-bottom:var(--content-gap);">从「人工分岗 + 转接」到「AI 全岗位自主接待」</h2>
+
+        <p class="reveal" style="color:var(--muted); font-size:var(--small-size); margin-bottom:var(--element-gap);">现状 · 千牛人工　分岗 + 转接</p>
+        <div class="gateway reveal" style="margin-bottom:var(--element-gap);">
+            <div class="g-node"><b>客户进线</b><span>淘系 / 京东 / 抖音</span></div>
+            <div class="g-arrow">→</div>
+            <div class="g-node"><b>系统分流</b><span>人工 / 规则分流</span></div>
+            <div class="g-arrow">→</div>
+            <div class="g-node"><b>售前 / 售中</b><span>分岗位接待</span></div>
+            <div class="g-arrow">→</div>
+            <div class="g-node" style="border-color:rgba(209,74,60,0.55);"><b style="color:#D14A3C;">转接 / 流失</b><span>分流不精准</span></div>
+        </div>
+        <p class="reveal lead" style="font-size:var(--small-size); margin-bottom:var(--content-gap); color:#D14A3C;">分流不精准 → 转接 → 用户被转来转去、转化流失；质量只能事后靠赤兔名品记录</p>
+
+        <p class="reveal" style="color:var(--accent-soft); font-size:var(--small-size); margin-bottom:var(--element-gap);">方案 · AI 自主接待　进线即自动分流</p>
+        <div class="gateway reveal" style="margin-bottom:var(--element-gap);">
+            <div class="g-node"><b>客户进线</b><span>多平台统一网关</span></div>
+            <div class="g-arrow">→</div>
+            <div class="g-node"><b>AI 自动分流</b><span>售前 / 售中 / 售后</span></div>
+            <div class="g-arrow">→</div>
+            <div class="g-node hl"><b>RAG 检索 + 生成</b><span>知识库 + 大模型</span></div>
+            <div class="g-arrow">→</div>
+            <div class="g-node hl"><b>秒级回复</b><span>无需转接</span></div>
+        </div>
+        <p class="reveal lead" style="font-size:var(--small-size);"><span class="tag">赤兔名品三指标</span>接待量 · 满意度 · 转化率　→　现状仅事后记录，<span class="accent">AI 实时提升</span></p>
+    </div>
+</section>
+
+<!-- 05 核心能力 -->
+<section class="slide">
+    <div class="slide-num">05</div>
+    <div class="slide-content">
+        <span class="kicker reveal">对应赛题的核心要求</span>
+        <h2 class="reveal" style="margin-bottom:var(--content-gap);">三大核心能力</h2>
+        <div class="grid grid-3 reveal">
+            <div class="card">
+                <h3>① 话术生成</h3>
+                <p class="lead">RAG 检索产品知识 + 平台规则 → 实时生成带
+                    <span class="accent">卖点 · 对比 · 促单</span> 的话术</p>
+            </div>
+            <div class="card">
+                <h3>② 岗位自动分流</h3>
+                <p class="lead">进线即意图识别，自动路由
+                    <span class="accent">售前 / 售中 / 售后</span>，无需人工分岗与转接</p>
+            </div>
+            <div class="card">
+                <h3>③ 智能接待</h3>
+                <p class="lead">多轮上下文理解，主动引导，跑通
+                    <span class="accent">「推荐 → 讲解 → 挖需 → 促单」</span> 全链路</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 06 技术架构 -->
+<section class="slide">
+    <div class="slide-num">06</div>
+    <div class="slide-content">
+        <span class="kicker reveal">技术架构</span>
+        <h2 class="reveal" style="margin-bottom:var(--content-gap);">RAG 话术生成流水线</h2>
+        <svg class="reveal" viewBox="0 0 960 480" role="img" aria-label="RAG 架构图"
+             style="width:100%; max-width:900px; max-height:60vh; height:auto; display:block; margin:0 auto;">
+            <defs>
+                <marker id="arrO" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+                    <path d="M0,0 L10,5 L0,10 z" fill="#F4571E"/>
+                </marker>
+                <marker id="arrS" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+                    <path d="M0,0 L10,5 L0,10 z" fill="#FF8A4C"/>
+                </marker>
+                <marker id="arrG" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+                    <path d="M0,0 L10,5 L0,10 z" fill="#E0A84C"/>
+                </marker>
+            </defs>
+
+            <!-- 主流程管线（五层颜色编码：应用层=暖橙 / 对话层=金橙 / 检索·生成层=小熊橙） -->
+            <g>
+                <rect x="360" y="36" width="240" height="44" rx="12" fill="#2A2017" stroke="#FF8A4C" stroke-width="1.5"/>
+                <rect x="360" y="38" width="7" height="40" fill="#FF8A4C"/>
+                <rect x="532" y="44" width="60" height="20" rx="10" fill="#FF8A4C"/>
+                <text x="562" y="58" text-anchor="middle" fill="#17110C" font-size="10" font-weight="700">应用层</text>
+                <text x="384" y="64" fill="#F6F0E6" font-size="17" font-weight="700">买家咨询</text>
+                <line x1="480" y1="80" x2="480" y2="110" stroke="#FF8A4C" stroke-width="2" marker-end="url(#arrS)"/>
+            </g>
+
+            <g>
+                <rect x="360" y="114" width="240" height="56" rx="12" fill="#221A13" stroke="#E0A84C" stroke-width="1.5"/>
+                <rect x="360" y="116" width="7" height="52" fill="#E0A84C"/>
+                <rect x="532" y="122" width="60" height="20" rx="10" fill="#E0A84C"/>
+                <text x="562" y="136" text-anchor="middle" fill="#17110C" font-size="10" font-weight="700">对话层</text>
+                <text x="384" y="140" fill="#F6F0E6" font-size="16" font-weight="700">意图识别</text>
+                <text x="384" y="158" fill="#A99C8B" font-size="10.5">推荐·对比·参数·优惠·物流·售后</text>
+                <line x1="480" y1="170" x2="480" y2="200" stroke="#E0A84C" stroke-width="2" marker-end="url(#arrG)"/>
+            </g>
+
+            <g>
+                <rect x="360" y="204" width="240" height="56" rx="12" fill="#221A13" stroke="#F4571E" stroke-width="1.5"/>
+                <rect x="360" y="206" width="7" height="52" fill="#F4571E"/>
+                <rect x="532" y="212" width="60" height="20" rx="10" fill="#F4571E"/>
+                <text x="562" y="226" text-anchor="middle" fill="#17110C" font-size="10" font-weight="700">检索层</text>
+                <text x="384" y="230" fill="#F6F0E6" font-size="16" font-weight="700">检索 · BM25</text>
+                <text x="384" y="248" fill="#A99C8B" font-size="10.5">中文分词 · Top-K 召回</text>
+                <line x1="480" y1="260" x2="480" y2="290" stroke="#F4571E" stroke-width="2" marker-end="url(#arrO)"/>
+            </g>
+
+            <g>
+                <rect x="360" y="294" width="240" height="56" rx="12" fill="#221A13" stroke="#F4571E" stroke-width="1.5"/>
+                <rect x="360" y="296" width="7" height="52" fill="#F4571E"/>
+                <rect x="532" y="302" width="60" height="20" rx="10" fill="#F4571E"/>
+                <text x="562" y="316" text-anchor="middle" fill="#17110C" font-size="10" font-weight="700">生成层</text>
+                <text x="384" y="320" fill="#F6F0E6" font-size="16" font-weight="700">生成 · DeepSeek</text>
+                <text x="384" y="338" fill="#A99C8B" font-size="10.5">卖点(FAB) + 对比 + 促单</text>
+                <line x1="480" y1="350" x2="480" y2="380" stroke="#F4571E" stroke-width="2" marker-end="url(#arrO)"/>
+            </g>
+
+            <g>
+                <rect x="360" y="384" width="240" height="44" rx="12" fill="#2A2017" stroke="#FF8A4C" stroke-width="1.5"/>
+                <rect x="360" y="386" width="7" height="40" fill="#FF8A4C"/>
+                <rect x="532" y="392" width="60" height="20" rx="10" fill="#FF8A4C"/>
+                <text x="562" y="406" text-anchor="middle" fill="#17110C" font-size="10" font-weight="700">应用层</text>
+                <text x="384" y="412" fill="#F6F0E6" font-size="17" font-weight="700">AI 回复话术</text>
+            </g>
+
+            <!-- 左侧：多轮对话管理（对话层 · 指向生成层） -->
+            <g>
+                <rect x="48" y="257" width="260" height="130" rx="14" fill="#1D1611" stroke="rgba(246,240,230,0.16)" stroke-width="1"/>
+                <rect x="48" y="259" width="7" height="126" fill="#E0A84C"/>
+                <text x="70" y="285" fill="#E0A84C" font-size="14" font-weight="700">多轮对话管理</text>
+                <text x="70" y="307" fill="#A99C8B" font-size="11">会话历史 · 漏斗阶段跟踪</text>
+                <text x="70" y="327" fill="#A99C8B" font-size="11">推荐 → 讲解 → 挖需 → 促单</text>
+                <line x1="308" y1="322" x2="354" y2="322" stroke="#E0A84C" stroke-width="2" marker-end="url(#arrG)"/>
+            </g>
+
+            <!-- 右侧：数据层（指向检索层） -->
+            <g>
+                <rect x="656" y="147" width="256" height="172" rx="14" fill="#1D1611" stroke="rgba(246,240,230,0.16)" stroke-width="1"/>
+                <text x="784" y="169" text-anchor="middle" fill="#FF8A4C" font-size="14" font-weight="700">数据层</text>
+                <rect x="672" y="181" width="224" height="50" rx="8" fill="#2A2017" stroke="rgba(246,240,230,0.12)" stroke-width="1"/>
+                <text x="784" y="205" text-anchor="middle" fill="#F6F0E6" font-size="12.5" font-weight="600">产品知识库</text>
+                <text x="784" y="223" text-anchor="middle" fill="#A99C8B" font-size="10">卖点 / 参数 / FAQ</text>
+                <rect x="672" y="241" width="224" height="50" rx="8" fill="#2A2017" stroke="rgba(246,240,230,0.12)" stroke-width="1"/>
+                <text x="784" y="265" text-anchor="middle" fill="#F6F0E6" font-size="12.5" font-weight="600">平台规则库</text>
+                <text x="784" y="283" text-anchor="middle" fill="#A99C8B" font-size="10">优惠 / 售后 / 风格</text>
+                <line x1="656" y1="232" x2="600" y2="232" stroke="#FF8A4C" stroke-width="2" marker-end="url(#arrS)"/>
+            </g>
+
+            <!-- 底部说明 -->
+            <g>
+                <rect x="180" y="448" width="600" height="28" rx="14" fill="#1D1611" stroke="rgba(246,240,230,0.14)" stroke-width="1"/>
+                <text x="480" y="466" text-anchor="middle" font-size="12">
+                    <tspan fill="#FF8A4C" font-weight="700">应用层</tspan><tspan fill="#A99C8B">  Streamlit 可演示 Demo　　</tspan><tspan fill="#FF8A4C" font-weight="700">数据层</tspan><tspan fill="#A99C8B">  改 JSON 即更新，零训练成本</tspan>
+                </text>
+            </g>
+        </svg>
+    </div>
+</section>
+
+<!-- 07 Demo A -->
+<section class="slide">
+    <div class="slide-num">07</div>
+    <div class="slide-content">
+        <span class="kicker reveal">Demo A · 话术生成</span>
+        <h2 class="reveal" style="margin-bottom:var(--content-gap);">一条咨询 → 一条高质量话术</h2>
+        <div class="demo-bubble reveal" style="margin-bottom:var(--element-gap);">
+            <strong>买家：</strong>这款按摩器和 SKG 比有什么优势？
+        </div>
+        <div class="demo-bubble reveal">
+            <strong class="accent">AI 回复（京东）：</strong>亲，这款小熊 K3 主打<span class="tag inline">卖点</span>仿人手 4 头揉捏 + 42℃ 热敷二合一，
+            <span class="tag inline">对比</span>比 SKG 同档便宜约 30%，
+            <span class="tag inline">促单</span>京东自营次日达，满 299 减 30 更划算～
+        </div>
+        <p class="reveal lead" style="margin-top:var(--content-gap);">检索可解释：命中「颈椎按摩器 K3」，三要素齐备，风格贴合京东。</p>
+    </div>
+</section>
+
+<!-- 08 Demo B -->
+<section class="slide">
+    <div class="slide-num">08</div>
+    <div class="slide-content">
+        <span class="kicker reveal">Demo B · 多轮接待</span>
+        <h2 class="reveal" style="margin-bottom:var(--content-gap);">3 轮对话，自主走完漏斗</h2>
+        <div class="demo-bubble reveal" style="margin-bottom:var(--element-gap);">
+            <span class="tag">推荐</span><strong>买家：</strong>想给爸妈买个养生壶，有推荐的吗？<br>
+            <span class="lead">小熊：</span>推荐 1.5L 款，12 功能一键煮 + 55℃ 保温 + 可预约，需要帮您详细讲讲吗？
+        </div>
+        <div class="demo-bubble reveal" style="margin-bottom:var(--element-gap);">
+            <span class="tag">讲解</span><strong>买家：</strong>这个能预约吗？<br>
+            <span class="lead">小熊：</span>最长 12 小时预约，睡前放好早上就能喝～需要帮您算下到手价吗？
+        </div>
+        <div class="demo-bubble reveal">
+            <span class="tag">促单</span><strong>买家：</strong>现在买有优惠吗？<br>
+            <span class="lead">小熊：</span>店铺券 + 88VIP 95 折，凑满 300 再减 30，建议先领券拍下～
+        </div>
+    </div>
+</section>
+
+<!-- 09 Demo C -->
+<section class="slide">
+    <div class="slide-num">09</div>
+    <div class="slide-content">
+        <span class="kicker reveal">Demo C · 话术质量对比</span>
+        <h2 class="reveal" style="margin-bottom:var(--content-gap);">AI vs 人工，一致且高效</h2>
+        <div class="grid grid-2 reveal">
+            <div class="card">
+                <h3>👤 人工客服</h3>
+                <p class="lead">亲，我们这款是物理揉捏+42℃热敷二合一，更接近真人手法，性价比很高哦。</p>
+            </div>
+            <div class="card" style="border-color:rgba(244,87,30,0.5);">
+                <h3>🤖 AI 生成</h3>
+                <p>主打仿人手揉捏 + 42℃ 热敷，比 SKG 同档便宜 30%，京东次日达，满 299 减 30 更划算～</p>
+            </div>
+        </div>
+        <div class="grid grid-3 reveal" style="margin-top:var(--content-gap);">
+            <div class="card"><h3>接待量 ↑</h3><p class="lead">7×24 不设上限<br><span class="accent">人工 6-10 人并发</span></p></div>
+            <div class="card"><h3>满意度 ↑</h3><p class="lead">话术标准化、无情绪波动<br><span class="accent">人工参差不齐</span></p></div>
+            <div class="card"><h3>转化率 ↑</h3><p class="lead">秒回 + 促单 + 无转接流失<br><span class="accent">人工转接流失</span></p></div>
+        </div>
+        <p class="reveal lead" style="margin-top:0.5rem;">
+            对齐<strong class="accent">赤兔名品</strong>三大指标（接待量 / 满意度 / 转化率），AI 话术全面占优。
+        </p>
+    </div>
+</section>
+
+<!-- 10 多平台 -->
+<section class="slide">
+    <div class="slide-num">10</div>
+    <div class="slide-content">
+        <span class="kicker reveal">多平台适配</span>
+        <h2 class="reveal" style="margin-bottom:var(--content-gap);">一个模型 · 规则注入 · 四平台切换</h2>
+        <div class="grid grid-4 reveal">
+            <div class="card"><h3>京东</h3><p class="lead">专业可靠<br>自营正品 · 次日达</p></div>
+            <div class="card"><h3>天猫</h3><p class="lead">亲切质感<br>旗舰店 · 88VIP</p></div>
+            <div class="card"><h3>抖音</h3><p class="lead">热情口语<br>限时福利 · 抢购</p></div>
+            <div class="card"><h3>拼多多</h3><p class="lead">接地气<br>百亿补贴 · 性价比</p></div>
+        </div>
+        <div class="gateway reveal" style="margin-top:var(--content-gap);">
+            <div class="g-node"><b>四平台</b><span>买家消息</span></div>
+            <span class="g-arrow">→</span>
+            <div class="g-node hl"><b>统一网关</b><span>/webhook/{平台}</span></div>
+            <span class="g-arrow">→</span>
+            <div class="g-node hl"><b>平台适配器</b><span>Adapter</span></div>
+            <span class="g-arrow">→</span>
+            <div class="g-node hl"><b>RAG Engine</b><span>话术生成</span></div>
+        </div>
+        <p class="reveal lead" style="margin-top:0.6rem;">话术经同一网关回发至对应平台 · 平台差异只隔离在 <span class="accent">Adapter 层</span>，规则独立更新、<span class="accent">零训练成本</span>。</p>
+    </div>
+</section>
+
+<!-- 11 价值 -->
+<section class="slide">
+    <div class="slide-num">11</div>
+    <div class="slide-content">
+        <span class="kicker reveal">价值与落地</span>
+        <h2 class="reveal" style="margin-bottom:var(--content-gap);">价值：接待量 · 满意度 · 转化率全面提升</h2>
+        <div class="grid grid-4 reveal">
+            <div class="card"><h3>接待量 ↑</h3><p class="lead">7×24 不设上限，人工转异常兜底</p></div>
+            <div class="card"><h3>满意度 ↑</h3><p class="lead">话术标准化，质量稳定不随人波动</p></div>
+            <div class="card"><h3>转化率 ↑</h3><p class="lead">秒回 + 促单 + 无转接流失</p></div>
+            <div class="card"><h3>易落地</h3><p class="lead">改 JSON 即更新，零训练成本</p></div>
+        </div>
+    </div>
+</section>
+
+<!-- 12 总结 -->
+<section class="slide">
+    <div class="slide-num">12</div>
+    <div class="slide-content" style="align-items:center; text-align:center;">
+        <span class="kicker reveal">总结</span>
+        <p class="statement reveal">
+            让 AI 客服从「辅助工具」<br>升级为<span class="hl">「全自主接待单元」</span>
+        </p>
+        <p class="reveal lead" style="margin-top:var(--content-gap);">
+            跑通「买家提问 → RAG 检索 → 话术生成 → 自主回复」无人化链路
+        </p>
+    </div>
+</section>
+
+</main>
+
+<script>
+/* ===========================================
+   演示控制器：键盘 / 滚轮 / 触摸导航 + 进度 + 入场动画
+   =========================================== */
+(function () {
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const progress = document.getElementById('progress');
+    const counter = document.getElementById('counter');
+    const total = slides.length;
+    let current = 0;
+    let wheelLock = false;
+
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    function goTo(i) {
+        current = Math.max(0, Math.min(total - 1, i));
+        const el = slides[current];
+        // 尊重滚动容器（此处为 window）
+        window.scrollTo({ top: el.offsetTop, behavior: 'smooth' });
+        updateHud();
+    }
+
+    function updateHud() {
+        progress.style.width = ((current + 1) / total * 100) + '%';
+        counter.textContent = pad(current + 1) + ' / ' + pad(total);
+    }
+
+    // 键盘导航
+    window.addEventListener('keydown', function (e) {
+        if (['ArrowRight', 'ArrowDown', 'PageDown', ' '].includes(e.key)) {
+            e.preventDefault(); goTo(current + 1);
+        } else if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) {
+            e.preventDefault(); goTo(current - 1);
+        } else if (e.key === 'Home') {
+            e.preventDefault(); goTo(0);
+        } else if (e.key === 'End') {
+            e.preventDefault(); goTo(total - 1);
+        }
+    });
+
+    // 滚轮导航（节流）
+    window.addEventListener('wheel', function (e) {
+        if (wheelLock) return;
+        wheelLock = true;
+        setTimeout(function () { wheelLock = false; }, 650);
+        if (Math.abs(e.deltaY) < 20) return;
+        goTo(current + (e.deltaY > 0 ? 1 : -1));
+    }, { passive: true });
+
+    // 触摸导航
+    let touchY = null;
+    window.addEventListener('touchstart', function (e) {
+        touchY = e.touches[0].clientY;
+    }, { passive: true });
+    window.addEventListener('touchend', function (e) {
+        if (touchY === null) return;
+        const dy = e.changedTouches[0].clientY - touchY;
+        if (Math.abs(dy) > 40) goTo(current + (dy < 0 ? 1 : -1));
+        touchY = null;
+    }, { passive: true });
+
+    // 入场动画 + 当前页追踪（Intersection Observer）
+    const io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('in');
+                const idx = slides.indexOf(entry.target);
+                if (idx > -1) { current = idx; updateHud(); }
+            }
+        });
+    }, { threshold: 0.55 });
+    slides.forEach(function (s) { io.observe(s); });
+
+    updateHud();
+})();
+</script>
+</body>
+</html>

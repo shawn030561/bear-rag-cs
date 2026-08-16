@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小熊电器 AI 智能客服 · 交互 Demo</title>
+<style>
+  :root{
+    --bg:#17110C; --card:#221A13; --card2:#2A2017; --accent:#F4571E; --soft:#FF8A4C;
+    --gold:#E0A84C; --text:#F6F0E6; --muted:#A99C8B; --line:rgba(246,240,230,0.12);
+    --red:#D14A3C;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:"PingFang SC","Microsoft YaHei","Segoe UI",system-ui,sans-serif;
+    background:
+      radial-gradient(60vw 60vw at 85% -10%, rgba(244,87,30,0.16), transparent 60%),
+      radial-gradient(50vw 50vw at -10% 110%, rgba(244,87,30,0.10), transparent 60%),
+      var(--bg);
+    color:var(--text); min-height:100vh; display:flex; flex-direction:column;
+  }
+  .wrap{ max-width:880px; margin:0 auto; width:100%; padding:24px 20px 40px; flex:1; display:flex; flex-direction:column; }
+  header{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
+  h1{ font-size:22px; font-weight:800; }
+  h1 .dot{ color:var(--accent); }
+  .sub{ color:var(--muted); font-size:12.5px; margin-top:4px; }
+  .platforms{ display:flex; gap:8px; flex-wrap:wrap; }
+  .plat{
+    padding:7px 14px; border-radius:999px; font-size:13px; font-weight:700; cursor:pointer;
+    border:1px solid var(--line); color:var(--muted); background:var(--card); transition:.15s;
+  }
+  .plat.active{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  .flow-hint{
+    display:flex; gap:6px; flex-wrap:wrap; align-items:center; font-size:12px; color:var(--muted);
+    background:var(--card); border:1px solid var(--line); border-radius:12px; padding:9px 14px; margin-bottom:14px;
+  }
+  .flow-hint b{ color:var(--soft); font-weight:700; }
+  .flow-hint .arr{ color:var(--accent); }
+  .chat{ flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:14px; padding:4px 2px 16px; }
+  .msg{ display:flex; flex-direction:column; max-width:82%; }
+  .msg.user{ align-self:flex-end; align-items:flex-end; }
+  .msg.ai{ align-self:flex-start; align-items:flex-start; }
+  .bubble{ padding:11px 15px; border-radius:14px; font-size:14.5px; line-height:1.65; white-space:pre-wrap; word-break:break-word; }
+  .msg.user .bubble{ background:var(--accent); color:#fff; border-bottom-right-radius:4px; }
+  .msg.ai .bubble{ background:var(--card); border:1px solid var(--line); border-left:3px solid var(--soft); border-bottom-left-radius:4px; }
+  .meta{ display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+  .chip{ font-size:11.5px; padding:2px 9px; border-radius:999px; border:1px solid var(--line); color:var(--muted); }
+  .chip.post{ color:var(--soft); border-color:rgba(255,138,76,0.45); font-weight:700; }
+  .chip.intent{ color:var(--gold); border-color:rgba(224,168,76,0.4); }
+  .inputbar{ display:flex; gap:10px; margin-top:12px; }
+  input{
+    flex:1; background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:13px 16px; font-size:14.5px; color:var(--text); outline:none;
+  }
+  input:focus{ border-color:var(--accent); }
+  button{
+    background:var(--accent); color:#fff; border:none; border-radius:12px; padding:0 22px;
+    font-size:14.5px; font-weight:700; cursor:pointer; transition:.15s;
+  }
+  button:hover{ background:var(--soft); }
+  .sugg{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  .sugg span{
+    font-size:12px; color:var(--muted); border:1px dashed var(--line); border-radius:999px;
+    padding:5px 12px; cursor:pointer; transition:.15s;
+  }
+  .sugg span:hover{ color:var(--soft); border-color:var(--soft); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>🐻 小熊电器 <span class="dot">AI 智能客服</span></h1>
+      <div class="sub">交互 Demo · 岗位自动分流 · 四平台话术（离线演示版，非真实大模型）</div>
+    </div>
+    <div class="platforms" id="platforms"></div>
+  </header>
+
+  <div class="flow-hint">
+    <span>进线即自动分流：</span><b>售前</b><span class="arr">／</span><b>售中</b><span class="arr">／</span><b>售后</b>
+    <span class="arr">→</span><span>RAG 检索 + 生成</span><span class="arr">→</span><span>秒级回复、无需转接</span>
+  </div>
+
+  <div class="chat" id="chat"></div>
+
+  <div class="inputbar">
+    <input id="inp" type="text" placeholder="以买家身份提问，例如：想给爸妈买个养生壶…" />
+    <button onclick="send()">发送</button>
+  </div>
+  <div class="sugg" id="sugg"></div>
+</div>
+
+<script>
+const PLATFORMS = {
+  jd:     { name:'京东',   tone:'专业可靠 · 自营次日达' },
+  tmall:  { name:'天猫',   tone:'亲切质感 · 88VIP' },
+  douyin: { name:'抖音',   tone:'热情口语 · 直播间福利' },
+  pdd:    { name:'拼多多', tone:'接地气 · 百亿补贴' },
+};
+
+// —— 意图关键词（与 src/conversation.py 一致，顺序即优先级）——
+const INTENT_KEYWORDS = [
+  ['对比', ['对比','比较','区别','优势','和.*比','哪家好','哪个好','不如','好用吗','怎么样','值得买','好不好']],
+  ['优惠', ['优惠','便宜','券','折扣','活动','满减','促销','降价','多少钱','价格']],
+  ['物流', ['物流','快递','发货','多久.*到','几天.*到','什么时候.*到','次日达']],
+  ['售后', ['不想要','退','换货','换','售后','保修','质保','坏了','退货','退款','仅退款','维修']],
+  ['参数', ['参数','容量','功率','多大','尺寸','多少瓦','多少升','规格','续航','重量','几档']],
+  ['使用', ['怎么用','使用','操作','清洗','糊底','不会用','说明书','预约','声音大']],
+  ['推荐', ['推荐','买什么','适合','求推荐','想买','选哪个','有没有','想要','买个','买台','买款','礼物','送礼']],
+  ['促单', ['下单','怎么买','链接','拍','付款','买了','现在买']],
+];
+// —— 岗位路由（与 conversation.py 的 INTENT_POST 一致）——
+const INTENT_POST = {
+  '推荐':'售前','对比':'售前','参数':'售前','使用':'售前',
+  '优惠':'售中','物流':'售中','促单':'售中',
+  '售后':'售后','咨询':'售前',
+};
+
+function detectIntent(text){
+  for(const [intent, kws] of INTENT_KEYWORDS){
+    for(const kw of kws){
+      try{ if(new RegExp(kw).test(text)) return intent; }catch(e){}
+    }
+  }
+  return '咨询';
+}
+
+// —— 命中产品（简单关键词，模拟 BM25 检索）——
+const PRODUCTS = [
+  [/养生壶|煮茶|药膳|炖|煮蛋|爸妈|父母|老人|送长辈/, '小熊养生壶 1.5L'],
+  [/按摩|颈椎|颈部|脖子|SKG|揉捏|热敷/, '小熊颈椎按摩器 K3'],
+  [/加湿/, '小熊加湿器 4L'],
+  [/破壁|豆浆|榨汁/, '小熊破壁机'],
+  [/空气炸锅|炸鸡|炸薯条/, '小熊空气炸锅 5L'],
+  [/早餐机|三明治/, '小熊早餐机'],
+];
+function matchProducts(text){
+  const hit = PRODUCTS.filter(p=>p[0].test(text)).map(p=>p[1]);
+  return hit.length ? hit : ['小熊养生壶 1.5L'];
+}
+
+// —— 预置话术（离线演示：不同平台 × 意图）——
+const A = {
+  jd: {
+    '推荐':'亲，给爸妈买很推荐小熊养生壶 1.5L 哦，12 大功能一键煮茶、药膳、煮蛋，55℃ 自动保温 + 12 小时预约，操作简单。京东自营次日达，店铺首页还能领无门槛券。请问平时主要是煮花茶还是药膳呢？',
+    '对比':'亲，小熊 K3 在同价位里很少见地做了「揉捏 + 热敷」二合一，比 SKG 同档大约便宜 30%，而且不用下载 App、一键启动。京东自营正品保障，满 199 减 30，下单再赠收纳袋，喜欢可以先拍下～',
+    '优惠':'亲，现在京东有满 199 减 30、店铺无门槛券，下单再赠收纳袋，自营次日达，售后省心。',
+    '物流':'亲，京东自营一般次日达，部分地区支持 211 限时达；第三方一般 3 天左右到货。',
+    '参数':'亲，这款是 3D 仿人手揉捏，两档恒温热敷（42℃），一次充电可用 5–7 天，按键大字、长辈也好上手。京东自营次日达。',
+    '售后':'亲，京东自营支持 7 天无理由退换，质量问题 15 天内可换新，全国联保。是哪里不满意呀？',
+  },
+  tmall: {
+    '推荐':'亲，给爸妈买很推荐小熊养生壶 1.5L 哦～12 大功能、55℃ 保温、12 小时预约，旗舰店正品保障。天猫下单还能叠 88VIP 95 折。请问平时煮花茶还是药膳呢？',
+    '对比':'亲，小熊 K3 做了「揉捏 + 热敷」二合一，比 SKG 同档约便宜 30%，旗舰店正品 + 88VIP 95 折，喜欢可以先拍下～',
+    '优惠':'亲，天猫旗舰店有满减 + 88VIP 95 折，跨店满 300 减 40，下单还有赠品～',
+    '物流':'亲，旗舰店下单后 48 小时内发货，一般 2–4 天到货，顺丰/中通随机～',
+    '售后':'亲，天猫支持 7 天无理由退换，质量问题 15 天内可换，有运费险保障。是哪里不满意呀？',
+  },
+  douyin: {
+    '推荐':'宝宝来得正好！给爸妈买推荐小熊养生壶 1.5L，12 大功能、12 小时预约，直播间专属价超香～看中哪款告诉我，帮你锁定福利！',
+    '对比':'宝宝，小熊 K3 是「揉捏 + 热敷」二合一，比 SKG 同档便宜约 30%，直播间还有专属券，手慢无哦！',
+    '优惠':'宝宝来得太巧啦！直播间专属券 + 平台补贴，还能用抖音月付先买后付、分期免息，整点还有秒杀立减～',
+    '物流':'宝宝，下单后 48 小时内发货，一般 2–4 天到货，快递顺丰/中通随机～',
+    '售后':'宝宝，支持 7 天无理由，有运费险，不喜欢直接退哈～是哪里不满意呀？',
+  },
+  pdd: {
+    '推荐':'亲，给爸妈买推荐小熊养生壶 1.5L，百亿补贴价超实惠，12 大功能够用，性价比之王～',
+    '对比':'亲，小熊 K3 揉捏 + 热敷二合一，比 SKG 同档便宜约 30%，百亿补贴价更香～',
+    '优惠':'亲，百亿补贴价已经是低价了，还能叠平台券 + 满减，性价比拉满～',
+    '物流':'亲，下单后 48 小时内发货，一般 2–4 天到货，偏远地区稍慢些哈～',
+    '售后':'亲，不想要可以退的哈，支持 7 天无理由，有运费险。是哪里不满意呀？',
+  },
+};
+const FALLBACK = '亲，您好～我是小熊 AI 客服，可以帮您推荐产品、查参数、解答优惠和售后。您想了解哪方面呢？';
+
+function answerFor(platform, intent){
+  const p = A[platform] || {};
+  if(p[intent]) return p[intent];
+  // 未单独预置的意图，用平台口吻给一句通用回复
+  if(intent === '咨询') return FALLBACK;
+  if(intent === '使用') return p['推荐'] ? p['推荐'].slice(0, 40) + '…… 使用上很方便，具体操作我也可以给您步骤说明～' : FALLBACK;
+  if(intent === '促单') return '亲，喜欢的话现在下单最划算，优惠 + 服务都到位，直接拍即可～';
+  return p['推荐'] || FALLBACK;
+}
+
+// —— 渲染 ——
+let platform = 'jd';
+const chatEl = document.getElementById('chat');
+const platformsEl = document.getElementById('platforms');
+const suggEl = document.getElementById('sugg');
+const SUGG = ['想给爸妈买个养生壶，有推荐吗？','这款按摩器和SKG比有什么优势？','现在下单有优惠吗？','多久能到货？','不想要了能退吗？'];
+
+function renderPlatforms(){
+  platformsEl.innerHTML = '';
+  Object.entries(PLATFORMS).forEach(([code, p]) => {
+    const el = document.createElement('div');
+    el.className = 'plat' + (code === platform ? ' active' : '');
+    el.textContent = p.name;
+    el.onclick = () => { platform = code; renderPlatforms(); };
+    platformsEl.appendChild(el);
+  });
+}
+function renderSugg(){
+  suggEl.innerHTML = '';
+  SUGG.forEach(s => {
+    const el = document.createElement('span');
+    el.textContent = s;
+    el.onclick = () => { document.getElementById('inp').value = s; send(); };
+    suggEl.appendChild(el);
+  });
+}
+function addMsg(role, text, meta){
+  const wrap = document.createElement('div');
+  wrap.className = 'msg ' + role;
+  const b = document.createElement('div');
+  b.className = 'bubble';
+  b.textContent = text;
+  wrap.appendChild(b);
+  if(meta){
+    const m = document.createElement('div');
+    m.className = 'meta';
+    if(meta.post)   { const c = document.createElement('span'); c.className='chip post';   c.textContent='岗位：'+meta.post;   m.appendChild(c); }
+    if(meta.intent){ const c = document.createElement('span'); c.className='chip intent'; c.textContent='意图：'+meta.intent; m.appendChild(c); }
+    if(meta.hit)    { const c = document.createElement('span'); c.className='chip';       c.textContent='命中：'+meta.hit.join('、'); m.appendChild(c); }
+    wrap.appendChild(m);
+  }
+  chatEl.appendChild(wrap);
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+function send(){
+  const inp = document.getElementById('inp');
+  const text = inp.value.trim();
+  if(!text) return;
+  inp.value = '';
+  const intent = detectIntent(text);
+  const post = INTENT_POST[intent] || '售前';
+  const hit = matchProducts(text);
+  addMsg('user', text);
+  // 模拟「检索→分流→生成」的思考
+  setTimeout(() => {
+    const answer = answerFor(platform, intent);
+    addMsg('ai', answer, { post, intent, hit });
+  }, 450);
+}
+
+// 启动
+renderPlatforms();
+renderSugg();
+addMsg('ai', '亲，您好～我是小熊 AI 客服，现在接入了「'+ PLATFORMS[platform].name +'」。直接输入您的问题，我会自动分流到对应岗位并回复（'+ PLATFORMS[platform].tone +'）。可以点下方示例快速体验～', { post:'售前', intent:'咨询', hit:[] });
+
+document.getElementById('inp').addEventListener('keydown', e => { if(e.key === 'Enter') send(); });
+</script>
+</body>
+</html>

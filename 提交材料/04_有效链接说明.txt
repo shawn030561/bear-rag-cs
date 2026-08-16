@@ -1,0 +1,16 @@
+Demo / 成品 / 演示视频 —— 有效访问方式说明
+
+本项目为本地演示项目，未部署公网服务器链接。以下为可直接访问/运行的有效方式：
+
+1. 零安装成品（交互 Demo）
+   双击打开「04_交互Demo.html」，浏览器即用（file:// 路径即有效链接）。
+   也可将这一个 HTML 文件上传到任意静态服务器 / 对象存储，即获得公网有效链接。
+
+2. 演示视频
+   直接播放「04_演示视频.mp4」（101 秒，1080p）。
+
+3. 真实大模型 Demo（需密钥）
+   本地运行：pip install -r requirements.txt → 配置 .env → streamlit run src/app.py
+   浏览器访问 http://localhost:8501
+
+如需公网链接，可将「交互Demo.html」部署到任意静态托管（GitHub Pages / 对象存储 / Nginx 等）。

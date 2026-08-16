@@ -1,0 +1,16 @@
+# 密钥与敏感信息
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# 系统
+.DS_Store
+Thumbs.db
+
+# 提交打包产物（冗余，重新打包可复现）
+*.zip
